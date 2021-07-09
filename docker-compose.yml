@@ -1,0 +1,46 @@
+version: "3.1"
+services:
+
+  workspace:
+    image: laradock/workspace:2.2-7.2
+    container_name: application-workspace
+    volumes:
+      - .:/application:cached
+    ports:
+      - "14422:22"
+
+  webserver:
+    image: nginx:alpine
+    container_name: application-webserver
+    working_dir: /application
+    volumes:
+      - .:/application
+      - ./environment/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - "14400:80"
+
+  php-fpm:
+    build: environment/php-fpm
+    container_name: application-php-fpm
+    working_dir: /application
+    volumes:
+      - .:/application
+      - ./environment/php-fpm/php-ini-overrides.ini:/etc/php/7.3/fpm/conf.d/99-overrides.ini
+
+  mysql:
+    image: mysql:5.6
+    container_name: application-mysql
+    working_dir: /application
+    volumes:
+      - .:/application
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=database
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=password
+    ports:
+      - "14402:3306"
+
+  redis:
+    image: redis:alpine
+    container_name: application-redis
